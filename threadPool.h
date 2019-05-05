@@ -7,17 +7,20 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#define TASK_INSERT_FAILURE -1
+#define TASK_INSERT_SUCCESS 0
+
+
 
 typedef struct thread_pool
 {
     pthread_t** threadArray;     /* An array of thread pointers. */
-    pthread_t* poolManager;      /* The main thread of the threadArray. */
     pthread_mutex_t* mutexEmptyQ;/* The mutex to check for empty queue. */
     pthread_cond_t* cv;          /* The cond for the mutex. */
     struct os_queue* taskQueue;  /* The tasks queue. */
     bool isShuttingDown;         /* Is the thread threadArray being shutdown? */
+    bool shouldWaitForTasks;      /* Should we wait for tasks in queue when shutting down? */
     int numOfThreads;            /* The number of threads in the threadArray. */
-    int shouldWaitForTasks;      /* The number of threads to wait for. */
 
 }ThreadPool;
 
