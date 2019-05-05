@@ -68,7 +68,6 @@ void* tpRoutine(void *pool) {
         fprintf(stderr, "Error in system call\n");
     }
     pthread_exit(NULL);
-    return NULL;
 }
 
 /***
@@ -94,12 +93,6 @@ ThreadPool* tpCreate(int numOfThreads) {
     for (int i = 0; i < numOfThreads; ++i) {
         threadPool->threadArray[i] = NULL;
     }
-
-    /*// Allocate space for thread-threadArray of struct.
-    if ((threadPool->poolManager = malloc(sizeof(pthread_t))) == NULL) {
-        fprintf(stderr, "Cannot allocate memory for manager.\n");
-        return NULL;
-    }*/
 
     if ((threadPool->mutexEmptyQ = malloc(sizeof(pthread_mutex_t))) == NULL) {
         fprintf(stderr, "Cannot allocate memory for mutex.\n");
