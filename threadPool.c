@@ -1,4 +1,3 @@
-// Aviad Gottesman 311250484
 #include "threadPool.h"
 
 // todo chage all errors to Error in system call
