@@ -10,7 +10,7 @@
 #define TASK_INSERT_FAILURE -1
 #define TASK_INSERT_SUCCESS 0
 
-
+/// Thread Pool struct.
 
 typedef struct thread_pool
 {
@@ -29,6 +29,8 @@ ThreadPool* tpCreate(int numOfThreads);
 void tpDestroy(ThreadPool* threadPool, int shouldWaitForTasks);
 
 int tpInsertTask(ThreadPool* threadPool, void (*computeFunc) (void *), void* param);
+
+/// Task Node struct.
 
 typedef struct task_node {
 

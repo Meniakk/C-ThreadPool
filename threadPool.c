@@ -1,7 +1,5 @@
 #include "threadPool.h"
 
-// todo chage all errors to Error in system call
-
 void tpFreeThreadPool(ThreadPool *threadPool);
 void* tpRoutine(void *pool);
 
@@ -24,13 +22,13 @@ void* tpRoutine(void *pool) {
 
         /* Locking the mutex and waiting for tasks to enqueue */
         if (pthread_mutex_lock(threadPool->mutexEmptyQ) != 0) {
-            fprintf(stderr, "Cannot lock mutex.\n");
+            fprintf(stderr, "Error in system call\n");
         }
 
         /* While queue is empty, wait for wakeup */
         while (osIsQueueEmpty(threadPool->taskQueue) && !threadPool->isShuttingDown) {
             if (pthread_cond_wait(threadPool->cv, threadPool->mutexEmptyQ) != 0) {
-                fprintf(stderr, "Cannot wait for mutex.\n");
+                fprintf(stderr, "Error in system call\n");
             }
         }
 
@@ -58,7 +56,7 @@ void* tpRoutine(void *pool) {
          */
         task_node* task = osDequeue(threadPool->taskQueue);
         if (pthread_mutex_unlock(threadPool->mutexEmptyQ) != 0) {
-            fprintf(stderr, "Cannot un-lock mutex.\n");
+            fprintf(stderr, "Error in system call\n");
         }
         (*(task->computeFunc))(task->parameters);
         free(task);
@@ -67,7 +65,7 @@ void* tpRoutine(void *pool) {
 
     // Close this Thread.
     if (pthread_mutex_unlock(threadPool->mutexEmptyQ) != 0) {
-        fprintf(stderr, "Cannot un-lock mutex.\n");
+        fprintf(stderr, "Error in system call\n");
     }
     pthread_exit(NULL);
     return NULL;
@@ -130,8 +128,7 @@ ThreadPool* tpCreate(int numOfThreads) {
 
     threadPool->isShuttingDown = false;
 
-    /* Create and Start the threadArray poolManager. */
-    ///pthread_create(threadPool->poolManager, NULL, tpRoutine, (void *) threadPool);
+    /* Create and Start the threadArray. */
     for (int i = 0; i < numOfThreads; ++i) {
         if ((threadPool->threadArray[i] = malloc(sizeof(pthread_t))) == NULL) {
             fprintf(stderr, "Cannot allocate memory for thread number %d in array.\n", i);
@@ -156,7 +153,7 @@ void tpDestroy(ThreadPool* threadPool, int shouldWaitForTasks) {
     }
     /* Locking the mutex. */
     if (pthread_mutex_lock(threadPool->mutexEmptyQ) != 0) {
-        fprintf(stderr, "Cannot lock mutex in destroy.\n");
+        fprintf(stderr, "Error in system call\n");
     }
 
     // Setting isShuttingDown to true, so we wont try to use it.
@@ -165,18 +162,18 @@ void tpDestroy(ThreadPool* threadPool, int shouldWaitForTasks) {
 
     /* Send broadcast to wake up all threads. */
     if ((pthread_cond_broadcast(threadPool->cv)) != 0) {
-        fprintf(stderr, "Cannot send broadcast.\n");
+        fprintf(stderr, "Error in system call\n");
     }
     /* Un-lock mutex. */
     if (pthread_mutex_unlock(threadPool->mutexEmptyQ) != 0) {
-        fprintf(stderr, "Cannot unlock mutex in destroy.\n");
+        fprintf(stderr, "Error in system call\n");
     }
 
     /* Join threads until all are done. */
     for (int i = 0; i < threadPool->numOfThreads; ++i) {
 
         if ((pthread_join(*threadPool->threadArray[i], NULL)) != 0) {
-            fprintf(stderr, "Cannot join thread number %d.\n", i);
+            fprintf(stderr, "Error in system call\n");
         }
     }
 
@@ -211,7 +208,7 @@ int tpInsertTask(ThreadPool* threadPool, void (*computeFunc) (void *), void* par
 
     /* Locking the mutex. */
     if (pthread_mutex_lock(threadPool->mutexEmptyQ) != 0) {
-        fprintf(stderr, "Cannot lock mutex for task insert.\n");
+        fprintf(stderr, "Error in system call\n");
         return TASK_INSERT_FAILURE;
     }
 
@@ -220,13 +217,13 @@ int tpInsertTask(ThreadPool* threadPool, void (*computeFunc) (void *), void* par
 
     /* Notifying Threads that new task is available. */
     if (pthread_cond_signal(threadPool->cv) != 0) {
-        fprintf(stderr, "Cannot signal task add.\n");
+        fprintf(stderr, "Error in system call\n");
         return TASK_INSERT_FAILURE;
     }
 
     /* Un-locking the mutex. */
     if (pthread_mutex_unlock(threadPool->mutexEmptyQ) != 0) {
-        fprintf(stderr, "Cannot un-lock mutex after task insert.\n");
+        fprintf(stderr, "Error in system call\n");
         return TASK_INSERT_FAILURE;
     }
 
